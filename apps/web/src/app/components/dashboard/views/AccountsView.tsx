@@ -25,12 +25,12 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                                 <button className="px-3 py-2 rounded-xl bg-gray-100 text-sm">{t('detail')}</button>
                                 {connected ? (
                                     <button className="px-3 py-2 rounded-xl bg-white border text-sm"
-                                        onClick={async () => { try { await (await import('@/lib/api')).AccountsAPI.revoke(p.key as PlatformKey); await refresh(); } catch (e) { alert(String(e)); } }}>
+                                        onClick={async () => { try { await (await import('@/app/lib/api')).AccountsAPI.revoke(p.key as PlatformKey); await refresh(); } catch (e) { alert(String(e)); } }}>
                                         {t('disconnect')}
                                     </button>
                                 ) : (
                                     <button className="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm"
-                                        onClick={async () => { try { await (await import('@/lib/api')).AccountsAPI.authorize(p.key as PlatformKey); } catch (e) { alert(String(e)); } }}>
+                                        onClick={async () => { try { await (await import('@/app/lib/api')).AccountsAPI.authorize(p.key as PlatformKey); } catch (e) { alert(String(e)); } }}>
                                         {t('connect')}
                                     </button>
                                 )}

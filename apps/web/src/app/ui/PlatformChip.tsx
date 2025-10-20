@@ -12,7 +12,7 @@ export default function PlatformChip({
 }: {
   name: string;
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  colorClass: string;             // 如 'bg-red-500'
+  colorClass: string;
   active?: boolean;
   asButton?: boolean;
 } & React.ComponentProps<'div'> & React.ComponentProps<'button'>) {
