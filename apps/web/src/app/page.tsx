@@ -1,6 +1,6 @@
-import Image from "next/image";
-import HootsuiteLikeDashboard from "@/app/components/HootsuiteLikeDashboard";
+"use client"
+import Dashboard from "@/app/components/dashboard/Dashboard";
 
 export default function Page() {
-  return <HootsuiteLikeDashboard />;
+  return <Dashboard initialTab="home"/>;
 }

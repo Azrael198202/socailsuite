@@ -1,4 +1,6 @@
-import Dashboard from "@/app/components/HootsuiteLikeDashboard";
+'use client';
+
+import Dashboard from "@/app/components//dashboard/Dashboard";
 export default function Accounts() { 
-    return <Dashboard /> 
+    return <Dashboard initialTab="accounts"/>;
 }
