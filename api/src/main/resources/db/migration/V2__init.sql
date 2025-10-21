@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS
         updated_at TIMESTAMPTZ DEFAULT now ()
     );
 
-CREATE TABLE IF NOT EXISTS qrtz_job_details  (
+CREATE TABLE IF NOT EXISTS qrtz_job_details (
   sched_name      VARCHAR(120) NOT NULL,
   job_name        VARCHAR(200) NOT NULL,
   job_group       VARCHAR(200) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS qrtz_simple_triggers (
     REFERENCES qrtz_triggers (sched_name, trigger_name, trigger_group)
 );
 
-CREATE TABLE IF NOT EXISTS qrtz_cron_triggers  (
+CREATE TABLE IF NOT EXISTS qrtz_cron_triggers(
   sched_name     VARCHAR(120) NOT NULL,
   trigger_name   VARCHAR(200) NOT NULL,
   trigger_group  VARCHAR(200) NOT NULL,
