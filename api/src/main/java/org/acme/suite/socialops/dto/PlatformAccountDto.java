@@ -1,5 +1,6 @@
 package org.acme.suite.socialops.dto;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.acme.suite.socialops.domain.Platform;
@@ -14,5 +15,6 @@ public record PlatformAccountDto(
         boolean connected,
         boolean isDefault,
         String externalId,
-        String avatarUrl) {
+        String avatarUrl,
+        OffsetDateTime expires_at) {
 }

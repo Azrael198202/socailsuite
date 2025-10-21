@@ -21,4 +21,8 @@ public class AccountRepo implements PanacheRepository<Account> {
     public List<Account> listByPlatform(Platform p) {
         return list("platform", p);
     }
+
+    public void clearDefault(Platform p) {
+        update("isDefault=false where platform=?1", p);
+    }
 }

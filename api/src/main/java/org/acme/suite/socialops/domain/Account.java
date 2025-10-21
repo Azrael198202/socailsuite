@@ -34,6 +34,8 @@ public class Account extends PanacheEntityBase {
 
     @Column(columnDefinition = "text")
     public String avatarUrl;
+
+    public OffsetDateTime expires_at;
     
     public OffsetDateTime created_at;
     
