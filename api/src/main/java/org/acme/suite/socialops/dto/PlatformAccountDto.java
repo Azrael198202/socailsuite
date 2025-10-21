@@ -16,5 +16,8 @@ public record PlatformAccountDto(
         boolean isDefault,
         String externalId,
         String avatarUrl,
-        OffsetDateTime expires_at) {
+        OffsetDateTime expires_at,
+        String status,
+        java.util.List<String> scopes // 'active'|'expired'|'revoked'
+        ) {
 }

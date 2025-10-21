@@ -22,8 +22,8 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
             } catch {
                 // 🔧 local demo data
                 setItems([
-                    { id: '1', platform: platform, handle: '@megumi', displayName: 'Megumi Studio', scopes: ['upload', 'analytics'], createdAt: new Date().toISOString(), status: 'active', isDefault: true },
-                    { id: '2', platform: platform, handle: '@teamdev', displayName: 'Team Dev', scopes: ['upload'], createdAt: new Date().toISOString(), status: 'active' },
+                    { id: '1', platform: platform, handle: '@megumi', name: 'Megumi Studio', scopes: ['upload', 'analytics'], createdAt: new Date().toISOString(), status: 'active', isDefault: true,connected: true },
+                    { id: '2', platform: platform, handle: '@teamdev', name: 'Team Dev', scopes: ['upload'], createdAt: new Date().toISOString(), status: 'active',connected: true ,isDefault: false },
                 ]);
             }
         })();
@@ -42,17 +42,17 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
                         <div className="space-y-2">
                             {items.map(acc => (
                                 <AccountChip key={acc.id}
-                                    label={`${acc.displayName} (${acc.handle})`}
+                                    label={`${acc.name} (${acc.handle})`}
                                     hint={acc.scopes.join(', ')}
                                     status={acc.status}
                                     isDefault={acc.isDefault}
                                     onDefault={acc.isDefault ? undefined : async () => {
-                                        await AccountsAPI.setDefault(acc.id);
+                                        await AccountsAPI.setDefault(platform, acc.id);
                                         setItems(s => s.map(x => ({ ...x, isDefault: x.id === acc.id })));
                                     }}
-                                    onRefresh={async () => { await AccountsAPI.refreshToken(acc.id); alert('トークンを再取得しました'); }}
+                                    onRefresh={async () => { await AccountsAPI.refreshToken(platform, acc.id); alert('トークンを再取得しました'); }}
                                     onRemove={async () => {
-                                        try { await AccountsAPI.revokeAccount(acc.id); } catch { }
+                                        try { await AccountsAPI.deleteAccount(platform,acc.id); } catch { }
                                         setItems(s => s.filter(x => x.id !== acc.id));
                                     }}
                                 />

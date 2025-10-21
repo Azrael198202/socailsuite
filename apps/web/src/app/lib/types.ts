@@ -18,6 +18,7 @@ export type PlatformAccount = {
   id: string; 
   platform: PlatformKey;
   name: string;
+  scopes: string[];
   handle: string;
   access_token?: string;
   refresh_token?: string;
@@ -25,4 +26,6 @@ export type PlatformAccount = {
   isDefault: boolean;
   externalId?: string;
   avatarUrl?: string;
+  createdAt: string;
+  status: 'active' | 'expired' | 'revoked';  
 };

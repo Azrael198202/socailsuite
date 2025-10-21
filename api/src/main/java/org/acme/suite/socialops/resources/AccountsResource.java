@@ -56,26 +56,16 @@ public class AccountsResource {
         List<Account> rows = repo.listByPlatform(p);
         List<PlatformAccountDto> out = new ArrayList<>(rows.size());
         for (Account a : rows) {
-            out.add(new PlatformAccountDto(
-                    a.id,
-                    a.platform,
-                    a.name,
-                    a.handle,
-                    a.access_token,
-                    a.refresh_token,
-                    a.connected,
-                    a.isDefault,
-                    a.externalId,
-                    a.avatarUrl,
-                    a.expires_at));
+            out.add(PlatformUtils.toDto(a));
         }
         return out;
     }
 
     /**
      * Create manual account
+     * 
      * @param platform Platform name
-     * @param req Request body
+     * @param req      Request body
      * @return Created PlatformAccountDto
      */
     @POST
@@ -98,20 +88,23 @@ public class AccountsResource {
 
     /**
      * OAuth Start - return 3rd party auth URL
+     * 
      * @param platform Platform name
-     * @param req Request body
+     * @param req      Request body
      * @return OAuthStartResp with authUrl
      */
-    @POST @Path("/{platform}/oauth/start")
+    @POST
+    @Path("/{platform}/oauth/start")
     public OAuthStartResp oauthStart(@PathParam("platform") String platform, OAuthStartReq req) {
-        Platform p = PlatformUtils.toPlatform(platform);
-
         String state = UUID.randomUUID().toString();
         String authUrl = "https://accounts.google.com/o/oauth2/v2/auth"
                 + "?client_id=" + /* from config */
                 "&redirect_uri=" + UriComponent.encode(req.redirectUrl(), UriComponent.Type.QUERY_PARAM)
                 + "&response_type=code"
-                + "&scope=" + UriComponent.encode("https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/yt-analytics.readonly", UriComponent.Type.QUERY_PARAM)
+                + "&scope="
+                + UriComponent.encode(
+                        "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/yt-analytics.readonly",
+                        UriComponent.Type.QUERY_PARAM)
                 + "&access_type=offline&prompt=consent"
                 + "&state=" + state;
 
@@ -120,19 +113,22 @@ public class AccountsResource {
 
     /**
      * OAuth Callback - handle 3rd party redirect
+     * 
      * @param platform Platform name
-     * @param code Code from 3rd party
-     * @param state State from 3rd party
+     * @param code     Code from 3rd party
+     * @param state    State from 3rd party
      * @param redirect Redirect URL to frontend
      * @return Response redirecting to frontend
      */
-    @GET @Path("/{platform}/oauth/callback")
+    @GET
+    @Path("/{platform}/oauth/callback")
     public Response oauthCallback(@PathParam("platform") String platform,
-                                  @QueryParam("code") String code,
-                                  @QueryParam("state") String state,
-                                  @QueryParam("redirect") @DefaultValue("http://localhost:3000/accounts") String redirect) {
+            @QueryParam("code") String code,
+            @QueryParam("state") String state,
+            @QueryParam("redirect") @DefaultValue("http://localhost:3000/accounts") String redirect) {
         Platform p = PlatformUtils.toPlatform(platform);
-        if (code == null || code.isBlank()) throw new BadRequestException("code required");
+        if (code == null || code.isBlank())
+            throw new BadRequestException("code required");
 
         // Code to Token（Google Token Endpoint）
         String accessToken = "mock-access";
@@ -166,16 +162,19 @@ public class AccountsResource {
 
     /**
      * Define default account
+     * 
      * @param platform Platform name
-     * @param id Account ID
+     * @param id       Account ID
      * @return Updated PlatformAccountDto
      */
-    @PUT @Path("/{platform}/{id}/default")
+    @PUT
+    @Path("/{platform}/{id}/default")
     public PlatformAccountDto setDefault(@PathParam("platform") String platform, @PathParam("id") Long id) {
         Platform p = PlatformUtils.toPlatform(platform);
         repo.clearDefault(p);
         Account a = repo.findById(id);
-        if (a == null || a.platform != p) throw new NotFoundException();
+        if (a == null || a.platform != p)
+            throw new NotFoundException();
         a.isDefault = true;
         a.updated_at = OffsetDateTime.now();
         repo.persist(a);
@@ -184,14 +183,17 @@ public class AccountsResource {
 
     /**
      * Refresh access token
+     * 
      * @param platform Platform name
-     * @param id Account ID
+     * @param id       Account ID
      * @return Updated PlatformAccountDto
      */
-    @POST @Path("/{platform}/{id}/refresh")
+    @POST
+    @Path("/{platform}/{id}/refresh")
     public PlatformAccountDto refreshToken(@PathParam("platform") String platform, @PathParam("id") Long id) {
         Account a = repo.findById(id);
-        if (a == null) throw new NotFoundException();
+        if (a == null)
+            throw new NotFoundException();
 
         // Mock refresh token process
         a.access_token = "mock-access-" + System.currentTimeMillis();
@@ -203,29 +205,37 @@ public class AccountsResource {
 
     /**
      * Delete account
+     * 
      * @param platform Platform name
-     * @param id Account ID
+     * @param id       Account ID
      * @return Status map
      */
-    @DELETE @Path("/{platform}/{id}")
-    public Map<String,String> delete(@PathParam("platform") String platform, @PathParam("id") Long id) {
+    @DELETE
+    @Path("/{platform}/{id}")
+    public Map<String, String> delete(@PathParam("platform") String platform, @PathParam("id") Long id) {
         Account a = repo.findById(id);
-        if (a != null) repo.delete(a);
+        if (a != null)
+            repo.delete(a);
         return Map.of("status", "ok");
     }
 
     /**
      * Get token status summary
+     * 
      * @param platform Platform name
      * @return TokenStatusDto with valid and expired counts
      */
-    @GET @Path("/{platform}/tokens/status")
+    @GET
+    @Path("/{platform}/tokens/status")
     public TokenStatusDto tokenStatus(@PathParam("platform") String platform) {
         Platform p = PlatformUtils.toPlatform(platform);
         List<Account> rows = repo.listByPlatform(p);
-        int valid=0, expired=0;
-        for (Account a: rows) {
-            if (a.expires_at != null && a.expires_at.isAfter(OffsetDateTime.now())) valid++; else expired++;
+        int valid = 0, expired = 0;
+        for (Account a : rows) {
+            if (a.expires_at != null && a.expires_at.isAfter(OffsetDateTime.now()))
+                valid++;
+            else
+                expired++;
         }
         return new TokenStatusDto(valid, expired);
     }
