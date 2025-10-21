@@ -20,7 +20,7 @@
             "request": "launch",
             "mainClass": "io.quarkus.bootstrap.runner.QuarkusEntryPoint",
             "projectName": "socialops-api",
-            "cwd": "${workspaceFolder}/apps/api",
+            "cwd": "${workspaceFolder}/api",
             "env": {
                 "QUARKUS_DATASOURCE_JDBC_URL": "jdbc:postgresql://localhost:5432/socialops",
                 "QUARKUS_DATASOURCE_USERNAME": "postgres",
@@ -40,6 +40,16 @@
                 "--build"
             ],
             "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Frontend + Backend",
+            "configurations": [
+                "Frontend (Next.js)",
+                "Backend (Quarkus)"
+            ],
+            "stopAll": true
         }
     ]
 }
