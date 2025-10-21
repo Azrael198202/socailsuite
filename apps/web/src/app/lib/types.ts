@@ -17,12 +17,12 @@ export type ScheduledItem = {
 export type PlatformAccount = {
   id: string; 
   platform: PlatformKey;
-  handle: string; 
-  displayName: string; 
+  name: string;
+  handle: string;
+  access_token?: string;
+  refresh_token?: string;
+  connected: boolean;
+  isDefault: boolean;
+  externalId?: string;
   avatarUrl?: string;
-  scopes: string[];
-  createdAt: string;
-  expiresAt?: string;
-  status: 'active'|'expired'|'revoked';
-  isDefault?: boolean;
 };

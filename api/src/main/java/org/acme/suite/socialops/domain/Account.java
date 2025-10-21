@@ -11,14 +11,31 @@ public class Account extends PanacheEntityBase {
     @Id
     @Column(columnDefinition = "uuid")
     public UUID id;
+
     @Enumerated(EnumType.STRING)
     public Platform platform;
+
     public String name;
+
+    public String handle;
+
     @Column(columnDefinition = "text")
     public String access_token;
+    
     @Column(columnDefinition = "text")
     public String refresh_token;
+    
     public boolean connected;
+
+    public boolean isDefault;
+
+    @Column(columnDefinition = "text")
+    public String externalId;
+
+    @Column(columnDefinition = "text")
+    public String avatarUrl;
+    
     public OffsetDateTime created_at;
+    
     public OffsetDateTime updated_at;
 }

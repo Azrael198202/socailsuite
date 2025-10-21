@@ -24,4 +24,32 @@ public class AccountsResource {
         }
         return out;
     }
+
+    @GET
+    @Path("/{platform}")
+    public List<PlatformAccountDto> listByPlatform(@PathParam("platform") String platform) {
+        Platform p;
+        try {
+            p = Platform.valueOf(platform.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Unknown platform: " + platform);
+        }
+
+        List<Account> rows = repo.listByPlatform(p);
+        List<PlatformAccountDto> out = new ArrayList<>(rows.size());
+        for (Account a : rows) {
+            out.add(new PlatformAccountDto(
+                    a.id,
+                    a.platform,
+                    a.name,
+                    a.handle,
+                    a.access_token,
+                    a.refresh_token,
+                    a.connected,
+                    a.isDefault,
+                    a.externalId,
+                    a.avatarUrl));
+        }
+        return out;
+    }
 }

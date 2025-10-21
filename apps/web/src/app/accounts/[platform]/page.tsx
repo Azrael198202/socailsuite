@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import SectionCard from "@/app/ui/SectionCard";
 import { platforms } from "@/app/lib/platforms";
 import { AccountsAPI } from "@/app/lib/api";
@@ -8,24 +8,26 @@ import AccountChip from "@/app/ui/AccountChip";
 import ConnectModal from "@/app/ui/ConnectModal";
 import Link from "next/link";
 
-export default function PlatformDetail({ params }: { params: { platform: PlatformKey } }) {
-    const p = platforms.find(pp => pp.key === params.platform);
+export default function PlatformDetail({ params }: { params: Promise<{ platform: PlatformKey }> }) {
+
+    const { platform } = use(params); 
+    const p = platforms.find(pp => pp.key === platform);
     const [items, setItems] = useState<PlatformAccount[]>([]);
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
         (async () => {
             try {
-                setItems(await AccountsAPI.listPlatformAccounts(params.platform));
+                setItems(await AccountsAPI.listPlatformAccounts(platform));
             } catch {
                 // 🔧 local demo data
                 setItems([
-                    { id: '1', platform: params.platform, handle: '@megumi', displayName: 'Megumi Studio', scopes: ['upload', 'analytics'], createdAt: new Date().toISOString(), status: 'active', isDefault: true },
-                    { id: '2', platform: params.platform, handle: '@teamdev', displayName: 'Team Dev', scopes: ['upload'], createdAt: new Date().toISOString(), status: 'active' },
+                    { id: '1', platform: platform, handle: '@megumi', displayName: 'Megumi Studio', scopes: ['upload', 'analytics'], createdAt: new Date().toISOString(), status: 'active', isDefault: true },
+                    { id: '2', platform: platform, handle: '@teamdev', displayName: 'Team Dev', scopes: ['upload'], createdAt: new Date().toISOString(), status: 'active' },
                 ]);
             }
         })();
-    }, [params.platform]);
+    }, [platform]);
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-6">
@@ -70,7 +72,7 @@ export default function PlatformDetail({ params }: { params: { platform: Platfor
                     <SectionCard title="アクション">
                         <div className="space-y-2">
                             <button className="w-full px-3 py-2 rounded-xl bg-gray-900 text-white" onClick={() => setOpen(true)}>新しいアカウントを連携</button>
-                            <button className="w-full px-3 py-2 rounded-xl border" onClick={async () => { await AccountsAPI.beginBind(params.platform); }}>OAuth 認可へ</button>
+                            <button className="w-full px-3 py-2 rounded-xl border" onClick={async () => { await AccountsAPI.beginBind(platform); }}>OAuth 認可へ</button>
                         </div>
                     </SectionCard>
                     <SectionCard title="トークン状態">
@@ -85,7 +87,7 @@ export default function PlatformDetail({ params }: { params: { platform: Platfor
             <ConnectModal
                 open={open}
                 onClose={() => setOpen(false)}
-                onConnect={async () => { setOpen(false); await AccountsAPI.beginBind(params.platform); }}
+                onConnect={async () => { setOpen(false); await AccountsAPI.beginBind(platform); }}
             />
         </div>
     );
