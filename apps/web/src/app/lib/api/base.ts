@@ -3,16 +3,25 @@ export const API_BASE =
     process.env.NEXT_PUBLIC_API_BASE ||
     "http://localhost:8080";
 
-export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+    const method = init.method ?? "GET";
+    const headers = { ...(init.headers || {}) } as Record<string, string>;
+    if (init.body && !headers["Content-Type"]) {
+        headers["Content-Type"] = "application/json";
+    }
+
     const r = await fetch(`${API_BASE}${path}`, {
-        method: init?.method || "GET",
-        headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
-        cache: "no-store",
         ...init,
+        method,
+        headers,
+        cache: "no-store",
+        // TODO: enable when using cookies for auth
+        // credentials: "include",
     });
+
     if (!r.ok) {
-        const text = await r.text().catch(() => "");
-        throw new Error(`${r.status} ${r.statusText}: ${text}`);
+        const txt = await r.text().catch(() => "");
+        throw new Error(`${r.status} ${r.statusText}: ${txt}`);
     }
     return (await r.json()) as T;
 }
