@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { useI18n } from '@/app/lib/i18n';
 import SectionCard from '@/app/ui/SectionCard';
 import { platforms, cx } from '@/app/lib/platforms';
@@ -22,15 +23,40 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                             </div>
                             <div className="text-xs text-gray-500 mt-1">{t('status')}: {connected ? t('connected') : t('disconnected')}</div>
                             <div className="mt-3 flex gap-2">
-                                <button className="px-3 py-2 rounded-xl bg-gray-100 text-sm">{t('detail')}</button>
+                                <Link
+                                    href={`/accounts/${p.key}`}
+                                    className="px-3 py-2 rounded-xl bg-gray-100 text-sm inline-flex items-center justify-center"
+                                >
+                                    {t('detail')}
+                                </Link>
+
                                 {connected ? (
-                                    <button className="px-3 py-2 rounded-xl bg-white border text-sm"
-                                        onClick={async () => { try { await (await import('@/app/lib/api')).AccountsAPI.revoke(p.key as PlatformKey); await refresh(); } catch (e) { alert(String(e)); } }}>
+                                    <button
+                                        className="px-3 py-2 rounded-xl bg-white border text-sm"
+                                        onClick={async () => {
+                                            try {
+                                                const { AccountsAPI } = await import('@/app/lib/api');
+                                                await AccountsAPI.revoke(p.key as PlatformKey);
+                                                await refresh();
+                                            } catch (e) {
+                                                alert(String(e));
+                                            }
+                                        }}
+                                    >
                                         {t('disconnect')}
                                     </button>
                                 ) : (
-                                    <button className="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm"
-                                        onClick={async () => { try { await (await import('@/app/lib/api')).AccountsAPI.authorize(p.key as PlatformKey); } catch (e) { alert(String(e)); } }}>
+                                    <button
+                                        className="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm"
+                                        onClick={async () => {
+                                            try {
+                                                const { AccountsAPI } = await import('@/app/lib/api');
+                                                await AccountsAPI.authorize(p.key as PlatformKey);
+                                            } catch (e) {
+                                                alert(String(e));
+                                            }
+                                        }}
+                                    >
                                         {t('connect')}
                                     </button>
                                 )}

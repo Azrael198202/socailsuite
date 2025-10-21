@@ -47,6 +47,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+        </dependency>
         <!-- 🕊️ Flyway 数据迁移 -->
         <dependency>
             <groupId>io.quarkus</groupId>
