@@ -7,6 +7,7 @@ import type { PlatformKey, PlatformAccount } from "@/app/lib/types";
 import AccountChip from "@/app/ui/AccountChip";
 import ConnectModal from "@/app/ui/ConnectModal";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function PlatformDetail({ params }: { params: Promise<{ platform: PlatformKey }> }) {
 
@@ -14,6 +15,9 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
     const p = platforms.find(pp => pp.key === platform);
     const [items, setItems] = useState<PlatformAccount[]>([]);
     const [open, setOpen] = useState(false);
+    const [accId, setAccID] = useState('');
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         (async () => {
@@ -28,6 +32,45 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
             }
         })();
     }, [platform]);
+
+    const startOAuth = async () => {
+        setLoading(true);
+        try {
+            const redirectUrl = `${window.location.origin}/api/oauth/${platform}/callback`;
+            const { authUrl } = await AccountsAPI.startOAuth(platform, redirectUrl);
+
+            if (!authUrl) {
+                throw new Error("OAuth start succeeded but authUrl is empty.");
+            }
+            window.location.assign(authUrl);
+        } catch (e: any) {
+            alert(e.message || "OAuth start failed");
+            setLoading(false);
+        }
+    };
+
+    const createManual = async () => {
+        setLoading(true);
+        try {
+            // await AccountsAPI.createManual(platform, { name, handle, externalId, avatarUrl, scopes });
+            // router.push(`/accounts/${platform}`);
+            // router.refresh();
+        } catch (e: any) {
+            alert(e.message || "Create failed");
+            setLoading(false);
+        }
+    };
+
+    const remove = async (id: string) => {
+        setLoading(true);
+        try {
+            await AccountsAPI.deleteAccount(platform, id);
+            setItems(s => s.filter(x => x.id !== id));
+        } catch (e: any) {
+            alert(e.message || "Delete failed");
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-6">
@@ -50,11 +93,13 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
                                         await AccountsAPI.setDefault(platform, acc.id);
                                         setItems(s => s.map(x => ({ ...x, isDefault: x.id === acc.id })));
                                     }}
+                                    onView={() => router.push(`/accounts/${platform}/new?view=${acc.id}`)} 
                                     onRefresh={async () => { await AccountsAPI.refreshToken(platform, acc.id); alert('トークンを再取得しました'); }}
-                                    onRemove={async () => {
-                                        try { await AccountsAPI.deleteAccount(platform,acc.id); } catch { }
-                                        setItems(s => s.filter(x => x.id !== acc.id));
-                                    }}
+                                    // onRemove={async () => {
+                                    //     try { await AccountsAPI.deleteAccount(platform,acc.id); } catch { }
+                                    //     setItems(s => s.filter(x => x.id !== acc.id));
+                                    // }}
+                                    onRemove={ async () => {setOpen(true); setAccID(acc.id); }}
                                 />
                             ))}
                             {items.length === 0 && <div className="text-sm text-gray-500">まだ連携されたアカウントがありません。</div>}
@@ -71,8 +116,8 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-5">
                     <SectionCard title="アクション">
                         <div className="space-y-2">
-                            <button className="w-full px-3 py-2 rounded-xl bg-gray-900 text-white" onClick={() => setOpen(true)}>新しいアカウントを連携</button>
-                            <button className="w-full px-3 py-2 rounded-xl border" onClick={async () => { await AccountsAPI.beginBind(platform); }}>OAuth 認可へ</button>
+                            {/* <button className="w-full px-3 py-2 rounded-xl bg-gray-900 text-white" onClick={() => setOpen(true)}>新しいアカウントを連携</button> */}
+                            <button className="w-full px-3 py-2 rounded-xl bg-gray-900 text-white" onClick={startOAuth}>OAuth 認可へ</button>
                         </div>
                     </SectionCard>
                     <SectionCard title="トークン状態">
@@ -88,6 +133,8 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
                 open={open}
                 platform={platform}
                 onClose={() => setOpen(false)}
+                eventName="削除"
+                handle={() => remove(accId)}
             />
         </div>
     );

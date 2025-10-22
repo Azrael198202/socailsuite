@@ -10,6 +10,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         headers["Content-Type"] = "application/json";
     }
 
+    console.log('API_BASE=', API_BASE);
     const r = await fetch(`${API_BASE}${path}`, {
         ...init,
         method,
@@ -17,11 +18,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         cache: "no-store",
         // TODO: enable when using cookies for auth
         // credentials: "include",
-    });
+    });    
 
     if (!r.ok) {
         const txt = await r.text().catch(() => "");
         throw new Error(`${r.status} ${r.statusText}: ${txt}`);
     }
+
     return (await r.json()) as T;
 }

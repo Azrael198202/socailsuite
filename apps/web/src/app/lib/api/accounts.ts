@@ -47,6 +47,9 @@ export const AccountsAPI = {
     setDefault: (platform: PlatformKey, id: string) =>
         api<PlatformAccount>(`/api/accounts/${platform}/${id}/default`, { method: "PUT" }),
 
+    getAccount: (platform: PlatformKey, id: string) =>
+        api<PlatformAccount>(`/api/accounts/${platform}/${id}`),
+
     /**
      * Refresh token
      * @param platform PlatformKey 
@@ -108,4 +111,9 @@ export const AccountsAPI = {
 
     revokePlatform: (platform: PlatformKey) =>
         api<{ status: "ok" }>(`/api/accounts/${platform}/revoke`, { method: "POST" }),
+
+    getPrefill: (platform: PlatformKey, id: string) =>
+        api<{ name: string; handle: string; externalId: string; avatarUrl: string; scopes: string[] }>(
+            `/api/accounts/${platform}/prefill/${id}`
+        ),
 };

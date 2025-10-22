@@ -5,36 +5,42 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+import jakarta.enterprise.inject.Instance;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.acme.suite.socialops.domain.*;
 import org.acme.suite.socialops.dto.*;
 import org.acme.suite.socialops.oauth.OAuthStarter;
 import org.acme.suite.socialops.repo.*;
 import org.acme.suite.socialops.utils.PlatformUtils;
-
-import org.glassfish.jersey.uri.UriComponent;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Path("/api/accounts")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Transactional
 public class AccountsResource {
     @Inject
     AccountRepo repo;
 
     @Inject
-    List<OAuthStarter> starters;
+    Instance<OAuthStarter> starters;
 
     private Map<Platform, OAuthStarter> starterMap;
 
     @jakarta.annotation.PostConstruct
     void init() {
-        starterMap = starters.stream().collect(Collectors.toMap(OAuthStarter::platform, s -> s));
+        starterMap = new EnumMap<>(Platform.class);
+        for (OAuthStarter s : starters) {
+            starterMap.put(s.platform(), s);
+        }
     }
+
+    @ConfigProperty(name = "oauth.continue-base")
+    String continueBase;
 
     /**
      * List all platforms with connected account info
@@ -123,8 +129,8 @@ public class AccountsResource {
         if (starter == null) {
             throw new WebApplicationException("OAuth not supported for platform: " + p, 501);
         }
-
         String state = UUID.randomUUID().toString();
+
         String authUrl = starter.buildAuthUrl(req.redirectUrl(), state);
         return new OAuthStartResp(authUrl);
     }
@@ -149,7 +155,7 @@ public class AccountsResource {
     }
 
     /**
-     * OAuth Callback - handle 3rd party redirect
+     * OAuth callbackMock - handle 3rd party redirect
      * 
      * @param platform Platform name
      * @param code     Code from 3rd party
@@ -158,7 +164,7 @@ public class AccountsResource {
      * @return Response redirecting to frontend
      */
     @GET
-    @Path("/{platform}/oauth/callback")
+    @Path("/{platform}/oauth/callbackMock")
     public Response oauthCallback(@PathParam("platform") String platform,
             @QueryParam("code") String code,
             @QueryParam("state") String state,
@@ -195,6 +201,19 @@ public class AccountsResource {
 
         // Redirect to frontend
         return Response.seeOther(URI.create(redirect + "/" + platform)).build();
+    }
+
+    @GET
+    @Path("/{platform}/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlatformAccountDto getOne(@PathParam("platform") String platform,
+            @PathParam("id") UUID id) {
+        Platform p = PlatformUtils.toPlatform(platform);
+        Account a = repo.findByIdOptional(id)
+                .orElseThrow(() -> new NotFoundException("account not found"));
+        if (a.platform != p)
+            throw new NotFoundException("account not found");
+        return PlatformUtils.toDto(a);
     }
 
     /**
@@ -279,4 +298,42 @@ public class AccountsResource {
         }
         return new TokenStatusDto(valid, expired);
     }
+
+    @GET
+    @Path("/{platform}/oauth/callback")
+    public Response platformCallback(
+            @PathParam("platform") String platform,
+            @QueryParam("code") String code,
+            @QueryParam("state") String state,
+            @QueryParam("continue") String continueUrl) throws Exception {
+        Platform p = PlatformUtils.toPlatform(platform);
+        OAuthStarter starter = starterMap.get(p);
+
+        if (code == null || code.isBlank())
+            throw new BadRequestException("code required");
+        if (continueUrl == null || continueUrl.isBlank())
+            continueUrl = continueBase + "/accounts/" + platform + "/new";
+
+        String prefillId = starter.createPrefillFromCode(code);
+
+        String gotoUrl = continueUrl + (continueUrl.contains("?") ? "&" : "?") + "prefill=" + prefillId;
+        return Response.seeOther(URI.create(gotoUrl)).build();
+    }
+
+    @GET
+    @Path("/{platform}/prefill/{id}")
+    public PrefillDto getPrefill(
+            @PathParam("platform") String platform,
+            @PathParam("id") String id) throws Exception {
+
+        Platform p = PlatformUtils.toPlatform(platform);
+        OAuthStarter starter = starterMap.get(p);
+
+        PrefillDto dto = starter.takePrefill(id).orElseThrow(NotFoundException::new);
+        if (dto == null) {
+            throw new NotFoundException("Prefill not found or expired");
+        }
+        return dto;
+    }
+
 }
