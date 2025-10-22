@@ -5,8 +5,7 @@ import java.util.UUID;
 import org.acme.suite.socialops.domain.Account;
 import org.acme.suite.socialops.domain.Platform;
 import org.acme.suite.socialops.dto.PlatformAccountDto;
-
-import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 
 public class PlatformUtils {
     public static PlatformAccountDto toDto(Account a) {
@@ -15,7 +14,7 @@ public class PlatformUtils {
         if (!a.connected) {
             status = "expired";
         } else {
-            status = "active"; 
+            status = "active";
         }
 
         return new PlatformAccountDto(
@@ -35,10 +34,13 @@ public class PlatformUtils {
     }
 
     public static Platform toPlatform(String s) {
-        try {
-            return Platform.valueOf(s.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Unknown platform: " + s);
-        }
+        String k = s.trim().toLowerCase();
+        return switch (k) {
+            case "youtube", "yt", "youtubeshorts" -> Platform.youtube;
+            case "tiktok" -> Platform.tiktok;
+            case "x", "twitter" -> Platform.x;
+            case "instagram", "ig" -> Platform.instagram;
+            default -> throw new NotFoundException("platform not found: " + s); // 也可用 404 更贴切
+        };
     }
 }

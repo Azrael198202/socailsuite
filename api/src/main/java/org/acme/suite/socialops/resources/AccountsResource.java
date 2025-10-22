@@ -48,7 +48,7 @@ public class AccountsResource {
     public List<PlatformAccountDto> listByPlatform(@PathParam("platform") String platform) {
         Platform p;
         try {
-            p = Platform.valueOf(platform.toUpperCase());
+            p = Platform.valueOf(platform);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Unknown platform: " + platform);
         }
