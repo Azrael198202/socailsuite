@@ -12,6 +12,7 @@ import java.util.UUID;
 public class Account extends PanacheEntityBase {
     @Id
     @Column(columnDefinition = "uuid")
+    @GeneratedValue(strategy = GenerationType.UUID)
     public UUID id;
 
     @Enumerated(EnumType.STRING)

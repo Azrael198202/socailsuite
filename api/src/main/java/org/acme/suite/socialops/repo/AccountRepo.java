@@ -1,14 +1,15 @@
 package org.acme.suite.socialops.repo;
 
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.UUID;
 
 import org.acme.suite.socialops.domain.Account;
 import org.acme.suite.socialops.domain.Platform;
 
 @ApplicationScoped
-public class AccountRepo implements PanacheRepository<Account> {
+public class AccountRepo implements PanacheRepositoryBase<Account, UUID> {
 
     public List<Account> listAllConnected() {
         return list("connected", true);

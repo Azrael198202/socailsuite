@@ -86,8 +86,8 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
 
             <ConnectModal
                 open={open}
+                platform={platform}
                 onClose={() => setOpen(false)}
-                onConnect={async () => { setOpen(false); await AccountsAPI.beginBind(platform); }}
             />
         </div>
     );

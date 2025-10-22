@@ -12,6 +12,7 @@ export default function AddAccountForm({ platform }: { platform: PlatformKey }) 
     const [externalId, setExternalId] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [loading, setLoading] = useState(false);
+    const [scopes, setScopes] = useState("");
 
     const startOAuth = async () => {
         setLoading(true);
@@ -28,7 +29,7 @@ export default function AddAccountForm({ platform }: { platform: PlatformKey }) 
     const createManual = async () => {
         setLoading(true);
         try {
-            await AccountsAPI.createManual(platform, { name, handle, externalId, avatarUrl });
+            await AccountsAPI.createManual(platform, { name, handle, externalId, avatarUrl, scopes });
             router.push(`/accounts/${platform}`);
             router.refresh();
         } catch (e: any) {
@@ -53,6 +54,10 @@ export default function AddAccountForm({ platform }: { platform: PlatformKey }) 
                     <div>
                         <label className="text-sm text-gray-500">External ID（channelId等）</label>
                         <input value={externalId} onChange={e => setExternalId(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2" />
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-500">Scopes(split by ,)</label>
+                        <input value={scopes} onChange={e => setScopes(e.target.value)} className="mt-1 w-full rounded-xl border px-3 py-2" />
                     </div>
                     <div>
                         <label className="text-sm text-gray-500">Avatar URL</label>

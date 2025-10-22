@@ -36,7 +36,7 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                                         onClick={async () => {
                                             try {
                                                 const { AccountsAPI } = await import('@/app/lib/api');
-                                                await AccountsAPI.revoke(p.key as PlatformKey);
+                                                await AccountsAPI.revokePlatform(p.key as PlatformKey);
                                                 await refresh();
                                             } catch (e) {
                                                 alert(String(e));
@@ -51,7 +51,7 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                                         onClick={async () => {
                                             try {
                                                 const { AccountsAPI } = await import('@/app/lib/api');
-                                                await AccountsAPI.authorize(p.key as PlatformKey);
+                                                await AccountsAPI.beginPlatform(p.key as PlatformKey);
                                             } catch (e) {
                                                 alert(String(e));
                                             }

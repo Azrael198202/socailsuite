@@ -4,5 +4,6 @@ public record CreateManualAccountReq(
         String name,
         String handle,
         String externalId,
-        String avatarUrl
+        String avatarUrl,
+        String scopes
 ) {}

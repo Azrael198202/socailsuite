@@ -73,7 +73,7 @@ export const AccountsAPI = {
      */
     createManual: (
         platform: PlatformKey,
-        body: { name: string; handle?: string; externalId?: string; avatarUrl?: string }
+        body: { name: string; handle?: string; externalId?: string; avatarUrl?: string, scopes?: string }
     ) =>
         api<PlatformAccount>(`/api/accounts/${platform}/manual`, {
             method: "POST",
@@ -96,4 +96,16 @@ export const AccountsAPI = {
         const redirectUrl = `${window.location.origin}/accounts/${platform}`;
         await AccountsAPI.startOAuth(platform, redirectUrl);
     },
+
+    beginPlatform: async (platform: PlatformKey) => {
+        const redirectUrl = `${window.location.origin}/accounts/${platform}`;
+        const { authUrl } = await api<{ authUrl: string }>(
+            `/api/accounts/${platform}/oauth/start`,
+            { method: "POST", body: JSON.stringify({ redirectUrl }) }
+        );
+        window.location.href = authUrl;
+    },
+
+    revokePlatform: (platform: PlatformKey) =>
+        api<{ status: "ok" }>(`/api/accounts/${platform}/revoke`, { method: "POST" }),
 };

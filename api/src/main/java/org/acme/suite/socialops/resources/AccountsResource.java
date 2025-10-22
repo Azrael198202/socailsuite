@@ -3,13 +3,17 @@ package org.acme.suite.socialops.resources;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import org.acme.suite.socialops.domain.*;
 import org.acme.suite.socialops.dto.*;
+import org.acme.suite.socialops.oauth.OAuthStarter;
 import org.acme.suite.socialops.repo.*;
 import org.acme.suite.socialops.utils.PlatformUtils;
 
@@ -17,9 +21,20 @@ import org.glassfish.jersey.uri.UriComponent;
 
 @Path("/api/accounts")
 @Produces(MediaType.APPLICATION_JSON)
+@Transactional
 public class AccountsResource {
     @Inject
     AccountRepo repo;
+
+    @Inject
+    List<OAuthStarter> starters;
+
+    private Map<Platform, OAuthStarter> starterMap;
+
+    @jakarta.annotation.PostConstruct
+    void init() {
+        starterMap = starters.stream().collect(Collectors.toMap(OAuthStarter::platform, s -> s));
+    }
 
     /**
      * List all platforms with connected account info
@@ -82,6 +97,13 @@ public class AccountsResource {
         a.isDefault = false;
         a.created_at = OffsetDateTime.now();
         a.updated_at = a.created_at;
+
+        if (req.scopes() != null) {
+            String[] scopeArr = req.scopes().split(",");
+            for (String s : scopeArr) {
+                a.scopes.add(s.trim());
+            }
+        }
         repo.persist(a);
         return PlatformUtils.toDto(a);
     }
@@ -96,19 +118,34 @@ public class AccountsResource {
     @POST
     @Path("/{platform}/oauth/start")
     public OAuthStartResp oauthStart(@PathParam("platform") String platform, OAuthStartReq req) {
-        String state = UUID.randomUUID().toString();
-        String authUrl = "https://accounts.google.com/o/oauth2/v2/auth"
-                + "?client_id=" + /* from config */
-                "&redirect_uri=" + UriComponent.encode(req.redirectUrl(), UriComponent.Type.QUERY_PARAM)
-                + "&response_type=code"
-                + "&scope="
-                + UriComponent.encode(
-                        "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/yt-analytics.readonly",
-                        UriComponent.Type.QUERY_PARAM)
-                + "&access_type=offline&prompt=consent"
-                + "&state=" + state;
+        Platform p = PlatformUtils.toPlatform(platform);
+        OAuthStarter starter = starterMap.get(p);
+        if (starter == null) {
+            throw new WebApplicationException("OAuth not supported for platform: " + p, 501);
+        }
 
+        String state = UUID.randomUUID().toString();
+        String authUrl = starter.buildAuthUrl(req.redirectUrl(), state);
         return new OAuthStartResp(authUrl);
+    }
+
+    /**
+     * Revoke platform - disconnect all accounts
+     * 
+     * @param platform Platform name
+     * @return Status map
+     */
+    @POST
+    @Path("/{platform}/revoke")
+    public Map<String, String> revokePlatform(@PathParam("platform") String platform) {
+        Platform p = PlatformUtils.toPlatform(platform);
+        // soft delete tokens
+        repo.update("connected=false, access_token=null, refresh_token=null where platform=?1", p);
+
+        // delete account records
+        // repo.delete("platform", p);
+
+        return Map.of("status", "ok");
     }
 
     /**
@@ -169,10 +206,11 @@ public class AccountsResource {
      */
     @PUT
     @Path("/{platform}/{id}/default")
-    public PlatformAccountDto setDefault(@PathParam("platform") String platform, @PathParam("id") Long id) {
+    public PlatformAccountDto setDefault(@PathParam("platform") String platform, @PathParam("id") String id) {
         Platform p = PlatformUtils.toPlatform(platform);
         repo.clearDefault(p);
-        Account a = repo.findById(id);
+        UUID uuidID = UUID.fromString(id);
+        Account a = repo.findById(uuidID);
         if (a == null || a.platform != p)
             throw new NotFoundException();
         a.isDefault = true;
@@ -190,8 +228,9 @@ public class AccountsResource {
      */
     @POST
     @Path("/{platform}/{id}/refresh")
-    public PlatformAccountDto refreshToken(@PathParam("platform") String platform, @PathParam("id") Long id) {
-        Account a = repo.findById(id);
+    public PlatformAccountDto refreshToken(@PathParam("platform") String platform, @PathParam("id") String id) {
+        UUID uuidID = UUID.fromString(id);
+        Account a = repo.findById(uuidID);
         if (a == null)
             throw new NotFoundException();
 
@@ -212,8 +251,9 @@ public class AccountsResource {
      */
     @DELETE
     @Path("/{platform}/{id}")
-    public Map<String, String> delete(@PathParam("platform") String platform, @PathParam("id") Long id) {
-        Account a = repo.findById(id);
+    public Map<String, String> delete(@PathParam("platform") String platform, @PathParam("id") String id) {
+        UUID uuidID = UUID.fromString(id);
+        Account a = repo.findById(uuidID);
         if (a != null)
             repo.delete(a);
         return Map.of("status", "ok");
