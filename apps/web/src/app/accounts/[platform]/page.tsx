@@ -49,23 +49,12 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
         }
     };
 
-    const createManual = async () => {
-        setLoading(true);
-        try {
-            // await AccountsAPI.createManual(platform, { name, handle, externalId, avatarUrl, scopes });
-            // router.push(`/accounts/${platform}`);
-            // router.refresh();
-        } catch (e: any) {
-            alert(e.message || "Create failed");
-            setLoading(false);
-        }
-    };
-
     const remove = async (id: string) => {
         setLoading(true);
         try {
             await AccountsAPI.deleteAccount(platform, id);
             setItems(s => s.filter(x => x.id !== id));
+            setOpen(false);
         } catch (e: any) {
             alert(e.message || "Delete failed");
             setLoading(false);
@@ -133,7 +122,7 @@ export default function PlatformDetail({ params }: { params: Promise<{ platform:
                 open={open}
                 platform={platform}
                 onClose={() => setOpen(false)}
-                eventName="削除"
+                eventName="解除"
                 handle={() => remove(accId)}
             />
         </div>

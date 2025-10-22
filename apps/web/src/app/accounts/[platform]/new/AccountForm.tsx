@@ -3,7 +3,8 @@
 import { use, useState, useEffect } from "react";
 import { AccountsAPI } from "@/app/lib/api/accounts";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PlatformKey } from "@/app/lib/types";
+import { PlatformAccount, PlatformKey } from "@/app/lib/types";
+import ConnectModal from "@/app/ui/ConnectModal";
 
 export default function AccountForm({ platform }: { platform: PlatformKey }) {
     const router = useRouter();
@@ -14,6 +15,11 @@ export default function AccountForm({ platform }: { platform: PlatformKey }) {
     const [avatarUrl, setAvatarUrl] = useState("");
     const [loading, setLoading] = useState(false);
     const [scopes, setScopes] = useState("");
+    const [items, setItems] = useState<PlatformAccount[]>([]);
+    const [open, setOpen] = useState(false);
+    const [accId, setAccID] = useState('');
+
+    const [fromFlg, setfromFlg] = useState(false);
 
     useEffect(() => {
         const id = sp.get("prefill");
@@ -27,6 +33,7 @@ export default function AccountForm({ platform }: { platform: PlatformKey }) {
                 setExternalId(d.externalId ?? "");
                 setAvatarUrl(d.avatarUrl ?? "");
                 setScopes(Array.isArray(d.scopes) ? d.scopes.join(',') : '');
+                setfromFlg(false);
             } finally {
                 setLoading(false);
             }
@@ -45,11 +52,26 @@ export default function AccountForm({ platform }: { platform: PlatformKey }) {
                 setExternalId(a.externalId ?? "");
                 setAvatarUrl(a.avatarUrl ?? "");
                 setScopes(Array.isArray(a.scopes) ? a.scopes.join(',') : '');
+                setAccID(a.id);
+                setfromFlg(true);
             } finally {
                 setLoading(false);
             }
         })();
     }, [platform, sp]);
+
+    const remove = async (id: string) => {
+        setLoading(true);
+        try {
+            await AccountsAPI.deleteAccount(platform, id);
+            setItems(s => s.filter(x => x.id !== id));
+            setOpen(false);
+            router.push(`/accounts/${platform}`);
+        } catch (e: any) {
+            alert(e.message || "Delete failed");
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -184,10 +206,24 @@ export default function AccountForm({ platform }: { platform: PlatformKey }) {
                         </div>
                     </div>
 
-                    <div className="mt-6 grid grid-cols-2 gap-2">
-                        <button className="px-3 py-2 rounded-xl border">キャンセル</button>
-                    </div>
+                    {fromFlg && <div className="mt-6 grid grid-cols-1 gap-2">
+                        <button
+                            className="px-4 py-2 rounded-xl border border-red-500 text-red-600 font-medium
+                                        hover:bg-red-50 hover:text-red-700 active:bg-red-100 active:text-red-800
+                                        transition-colors duration-200"
+                            onClick={async () => setOpen(true)}
+                        >
+                            アカウント連携の解除
+                        </button>
+                    </div>}
                 </div>
+                <ConnectModal
+                    open={open}
+                    platform={platform}
+                    onClose={() => setOpen(false)}
+                    eventName="削除"
+                    handle={() => remove(accId)}
+                />
             </div>
         </div>
     );

@@ -25,7 +25,7 @@ export default function AccountChip({
         {onDefault && <button className="px-2 py-1 rounded-lg border" onClick={onDefault}>既定</button>}
         {onRefresh && <button className="px-2 py-1 rounded-lg border" onClick={onRefresh}><RefreshCw className="w-3.5 h-3.5" /></button>}
         {onView && (
-          <button className="h-7 w-7 rounded-lg border bg-white grid place-items-center"
+          <button className="px-2 py-1 rounded-lg border"
             title="表示"
             onClick={onView}>
             <Eye className="w-4 h-4" />

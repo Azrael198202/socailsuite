@@ -13,7 +13,9 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
     const [desc, setDesc] = useState('');
     const [tags, setTags] = useState('');
     const [date, setDate] = useState<string>(new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16));
-    const [platState, setPlatState] = useState<Record<PlatformKey, boolean>>({ youtube: true, tiktok: true, instagram: false, x: false, facebook: false, linkedin: false });
+
+    const [platState, setPlatState] = useState<Record<PlatformKey, boolean>>({ youtube: true, tiktok: false, instagram: false, x: false, facebook: false, linkedin: false });
+    
     const canSchedule = title.trim().length > 0 && Object.values(platState).some(Boolean);
 
     return (
