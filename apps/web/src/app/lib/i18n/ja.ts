@@ -44,7 +44,10 @@ const ja: Messages = {
   kpi_posts: "投稿数",
   kpi_followers: "フォロワー増",
   kpi_eng: "エンゲージ率",
-  platformViews: "プラットフォーム別 再生数"
+  platformViews: "プラットフォーム別 再生数",
+  accountexits: "アカウント",
+  exits: "あり",
+  noexits: "なし",
 };
 
 export default ja;

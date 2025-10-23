@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, {useEffect} from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/app/lib/i18n';
 import SectionCard from '@/app/ui/SectionCard';
@@ -8,12 +8,15 @@ import type { Account, PlatformKey } from '@/app/lib/types';
 
 export default function AccountsView({ accounts, refresh }: { accounts: Account[]; refresh: () => Promise<void> }) {
     const { t } = useI18n();
+
     return (
         <SectionCard title={t('accounts')}>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {platforms.map(p => {
                     const acc = accounts.find(a => a.platform === (p.key as PlatformKey));
                     const connected = acc?.connected ?? false;
+
+                    const accountExists = !!acc;
                     return (
                         <div key={p.key} className="rounded-2xl border p-4 bg-white">
                             <div className="flex items-center gap-2">
@@ -22,6 +25,7 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                                 <div className="font-medium">{p.name}</div>
                             </div>
                             <div className="text-xs text-gray-500 mt-1">{t('status')}: {connected ? t('connected') : t('disconnected')}</div>
+                            <div className="text-xs text-gray-500 mt-1">{t('accountexits')}: {accountExists ? t('exits') : t('noexits')}</div>
                             <div className="mt-3 flex gap-2">
                                 <Link
                                     href={`/accounts/${p.key}`}
@@ -52,6 +56,7 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
                                             try {
                                                 const { AccountsAPI } = await import('@/app/lib/api');
                                                 await AccountsAPI.beginPlatform(p.key as PlatformKey);
+                                                await refresh();
                                             } catch (e) {
                                                 alert(String(e));
                                             }

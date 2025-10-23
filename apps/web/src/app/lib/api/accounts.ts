@@ -101,12 +101,13 @@ export const AccountsAPI = {
     },
 
     beginPlatform: async (platform: PlatformKey) => {
-        const redirectUrl = `${window.location.origin}/accounts/${platform}`;
-        const { authUrl } = await api<{ authUrl: string }>(
-            `/api/accounts/${platform}/oauth/start`,
-            { method: "POST", body: JSON.stringify({ redirectUrl }) }
-        );
-        window.location.href = authUrl;
+        // const redirectUrl = `${window.location.origin}/accounts/${platform}`;
+        // const { authUrl } = await api<{ authUrl: string }>(
+        //     `/api/accounts/${platform}/start`,
+        //     { method: "POST", body: JSON.stringify({ redirectUrl }) }
+        // );
+        // window.location.href = authUrl;
+        api<{ status: "ok" }>(`/api/accounts/${platform}/start`, { method: "POST" })
     },
 
     revokePlatform: (platform: PlatformKey) =>

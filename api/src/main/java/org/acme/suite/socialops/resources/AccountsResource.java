@@ -136,6 +136,26 @@ public class AccountsResource {
     }
 
     /**
+     * OAuth Start - return 3rd party auth URL
+     * 
+     * @param platform Platform name
+     * @param req      Request body
+     * @return OAuthStartResp with authUrl
+     */
+    @POST
+    @Path("/{platform}/start")
+    public Map<String, String>  StartPlatform(@PathParam("platform") String platform, OAuthStartReq req) {
+        Platform p = PlatformUtils.toPlatform(platform);
+        // soft delete tokens
+        repo.update("connected=true where platform=?1", p);
+
+        // delete account records
+        // repo.delete("platform", p);
+
+        return Map.of("status", "ok");
+    }
+
+    /**
      * Revoke platform - disconnect all accounts
      * 
      * @param platform Platform name
@@ -146,7 +166,8 @@ public class AccountsResource {
     public Map<String, String> revokePlatform(@PathParam("platform") String platform) {
         Platform p = PlatformUtils.toPlatform(platform);
         // soft delete tokens
-        repo.update("connected=false, access_token=null, refresh_token=null where platform=?1", p);
+        // repo.update("connected=false, access_token=null, refresh_token=null where platform=?1", p);
+        repo.update("connected=false where platform=?1", p);
 
         // delete account records
         // repo.delete("platform", p);
