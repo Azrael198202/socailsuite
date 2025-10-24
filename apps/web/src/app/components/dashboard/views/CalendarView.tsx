@@ -44,6 +44,7 @@ export default function CalendarView({
                 const from = monthStart.toISOString().slice(0, 10);
                 const to = monthEnd.toISOString().slice(0, 10);
                 const data = await ScheduleAPI.listRange(from, to);
+                console.log('Fetched schedule items:', data);
                 setItems(data);
             } catch {
                 setItems([]);
@@ -67,7 +68,7 @@ export default function CalendarView({
     }, [year, month]);
 
     const dayItems = useMemo(
-        () => items.filter((i) => i.date === dayISO),
+        () => items.filter((i) => i.date.slice(0, 10) === dayISO),
         [items, dayISO]
     );
 
@@ -156,7 +157,8 @@ export default function CalendarView({
 
                     <div className="grid grid-cols-7 gap-2">
                         {cells.map((c, idx) => {
-                            const dayList = c.iso ? items.filter((i) => i.date === c.iso) : [];
+                            const dayList = c.iso ? items.filter((i) => i.date.slice(0, 10) === c.iso) : [];
+                            console.log('Rendering cell for date:', c.iso, 'with items:', dayList);
                             return (
                                 <div
                                     key={idx}

@@ -19,6 +19,7 @@ import java.time.*;
 @Path("/api/schedule")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Transactional
 public class ScheduleResource {
     @Inject
     ScheduledPostRepo repo;
