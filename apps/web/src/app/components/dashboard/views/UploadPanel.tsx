@@ -62,7 +62,15 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
             <div className="col-span-12 xl:col-span-8 flex flex-col gap-5">
 
                 <SectionCard title={t('file')}>
-                    <label className="rounded-2xl border-2 border-dashed grid place-content-center h-48 bg-white/50 cursor-pointer">
+                    <label
+                        className="rounded-2xl border-2 border-dashed grid place-content-center h-48 bg-white/50 cursor-pointer hover:bg-white transition"
+                        onDragOver={(e) => { e.preventDefault(); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            const f = e.dataTransfer.files?.[0];
+                            if (f) onPick(f);
+                        }}
+                    >
                         <input
                             type="file"
                             accept="video/*"
@@ -71,26 +79,31 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
                         />
                         <div className="text-center">
                             <div className="text-sm text-gray-600">
-                                {fileInfo ? `選択済み: ${fileInfo.name}` : 'Drag & drop or click to select'}
+                                {fileInfo?.name ? `選択済み: ${fileInfo.name}` : 'Drag & drop or click to select'}
                             </div>
                             <div className="text-xs text-gray-400 mt-1">MP4 / MOV / WEBM (≤ 1GB)</div>
                         </div>
                     </label>
 
                     {previewUrl && (
-                        <div className="my-3 h-px bg-gray-200">
+                        <div className="mt-3">
                             <video
                                 key={previewUrl}
-                                className="w-full rounded-xl border"
                                 src={previewUrl}
                                 controls
                                 playsInline
                                 preload="metadata"
-                            //poster="/placeholder.jpg"
+                                className="w-full aspect-video max-h-[420px] rounded-xl border object-contain bg-black"
                             />
+                            {fileInfo?.name && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                    {fileInfo.name}
+                                </div>
+                            )}
                         </div>
                     )}
                 </SectionCard>
+
 
                 <SectionCard title={t('meta')}>
                     <div className="space-y-3">
