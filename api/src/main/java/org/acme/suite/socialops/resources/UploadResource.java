@@ -2,6 +2,7 @@ package org.acme.suite.socialops.resources;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
@@ -26,5 +27,13 @@ public class UploadResource {
             @RestForm("file") FileUpload file) throws IOException {
 
         return mediaUpload.upload(file);
+    }
+
+    @GET
+    @Path("/{id}")
+    public Response review(
+            @PathParam("id") String id) throws IOException {
+
+        return mediaUpload.review(id);
     }
 }

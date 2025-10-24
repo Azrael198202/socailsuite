@@ -45,30 +45,35 @@ public class ScheduleResource {
     public ScheduledPost create(CreateReq r) {
         Account acc = (r.accountId() != null && !r.accountId().isBlank())
                 ? accountRepo.findById(UUID.fromString(r.accountId()))
-                : accountRepo.find("platform=?1 and isDefault=true and connected=true", r.platform).firstResult();
+                : accountRepo.find("platform=?1 and connected=true", r.platform).firstResult();
 
         if (acc == null)
             throw new WebApplicationException("no connected account", 400);
 
-        ScheduledPost p = new ScheduledPost();
-        p.id = UUID.randomUUID();
-        p.platform = r.platform();
-        p.title = Optional.ofNullable(r.title()).orElse("Untitled");
-        p.description = Optional.ofNullable(r.description()).orElse("");
-        p.tags = Optional.ofNullable(r.tags()).orElse("");
-        p.mediaId = UUID.fromString(r.mediaId());
-        p.accountId = acc.id;
+        List<Account> accounts = accountRepo.list("platform=?1 and connected=true", r.platform);
 
-        OffsetDateTime at = r.date().length() <= 10
-                ? ZonedDateTime.of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault())
-                        .toOffsetDateTime()
-                : OffsetDateTime.parse(r.date() + ":00Z");
+        for (Account account : accounts) {
+            ScheduledPost p = new ScheduledPost();
+            p.id = UUID.randomUUID();
+            p.platform = r.platform();
+            p.title = Optional.ofNullable(r.title()).orElse("Untitled");
+            p.description = Optional.ofNullable(r.description()).orElse("");
+            p.tags = Optional.ofNullable(r.tags()).orElse("");
+            p.mediaId = UUID.fromString(r.mediaId());
+            p.accountId = account.id;
 
-        p.date = at;
-        p.status = "PENDING";
-        p.created_at = OffsetDateTime.now();
-        repo.persist(p);
-        return p;
+            OffsetDateTime at = r.date().length() <= 10
+                    ? ZonedDateTime.of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault())
+                            .toOffsetDateTime()
+                    : OffsetDateTime.parse(r.date() + ":00Z");
+
+            p.date = at;
+            p.status = "PENDING";
+            p.created_at = OffsetDateTime.now();
+            repo.persist(p);
+        }
+
+        return repo.find("accountId=?1 and date=?2", acc.id, ZonedDateTime.of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault()).toOffsetDateTime()).firstResult();
     }
 
     @GET

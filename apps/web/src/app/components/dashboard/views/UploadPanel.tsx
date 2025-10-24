@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from '@/app/lib/i18n';
 import SectionCard from '@/app/ui/SectionCard';
 import { platforms, cx } from '@/app/lib/platforms';
@@ -15,29 +16,51 @@ export const API_BASE =
 
 export default function UploadPanel({ onCreated }: { onCreated: (item: ScheduledItem) => void }) {
     const { t } = useI18n();
+    const router = useRouter();
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [tags, setTags] = useState('');
     const [date, setDate] = useState<string>(new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16));
 
+    const revokeRef = useRef<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [platState, setPlatState] = useState<Record<PlatformKey, boolean>>({ youtube: true, tiktok: false, instagram: false, x: false, facebook: false, linkedin: false });
 
     const canSchedule = title.trim().length > 0 && Object.values(platState).some(Boolean);
 
-    const [fileInfo, setFileInfo] = useState<{ id: string, name: string } | null>(null);
+    const [fileInfo, setFileInfo] = useState<{ id: string, name: string, url?: string } | null>(null);
 
     const onPick = async (f: File) => {
+        const blobUrl = URL.createObjectURL(f);
+        setPreviewUrl(blobUrl);
+        revokeRef.current = blobUrl;
+        setFileInfo({ name: f.name, id: '' });
+
         try {
             const res = await uploadFile(f);
-            setFileInfo({ id: res.id, name: res.filename });
+            setFileInfo({ id: res.id, name: res.filename, url: res.url });
+            if (res.url) {
+                if (revokeRef.current) { URL.revokeObjectURL(revokeRef.current); revokeRef.current = null; }
+
+                const url = res.url?.startsWith("http")
+                    ? res.url
+                    : `${API_BASE}${res.url}`;
+                console.log('Uploaded file is at', url);
+                setPreviewUrl(url);
+            }
         } catch (e: any) {
-            alert(e.message || "Upload failed");
+            alert(e.message || "アップロードに失敗しました");
         }
     };
+
+    useEffect(() => {
+        return () => { if (revokeRef.current) URL.revokeObjectURL(revokeRef.current); };
+    }, []);
 
     return (
         <div className="grid grid-cols-12 gap-5">
             <div className="col-span-12 xl:col-span-8 flex flex-col gap-5">
+
                 <SectionCard title={t('file')}>
                     <label className="rounded-2xl border-2 border-dashed grid place-content-center h-48 bg-white/50 cursor-pointer">
                         <input
@@ -53,6 +76,20 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
                             <div className="text-xs text-gray-400 mt-1">MP4 / MOV / WEBM (≤ 1GB)</div>
                         </div>
                     </label>
+
+                    {previewUrl && (
+                        <div className="my-3 h-px bg-gray-200">
+                            <video
+                                key={previewUrl}
+                                className="w-full rounded-xl border"
+                                src={previewUrl}
+                                controls
+                                playsInline
+                                preload="metadata"
+                            //poster="/placeholder.jpg"
+                            />
+                        </div>
+                    )}
                 </SectionCard>
 
                 <SectionCard title={t('meta')}>
@@ -90,9 +127,20 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
                             onClick={async () => {
                                 try {
                                     const first = (Object.entries(platState).find(([_, v]) => v)![0]) as PlatformKey;
-                                    const created = await ScheduleAPI.create({ title: title || 'Untitled', date: date.slice(0, 10), platform: first, description: desc, tags });
+
+                                    console.log('Creating scheduled item...', { title, date, desc, tags, platform: first });
+
+                                    const created = await ScheduleAPI.create({
+                                        title: title || 'Untitled',
+                                        date: date.slice(0, 10),
+                                        platform: first,
+                                        description: desc,
+                                        tags,
+                                        mediaId: fileInfo?.id,
+                                    });
                                     onCreated(created);
                                     alert('OK: created on server');
+                                    router.push(`/calendar`);
                                 } catch {
                                     const id = Math.random().toString(36).slice(2);
                                     const first = (Object.keys(platState).find(k => (platState as any)[k]) as PlatformKey) || 'youtube';
