@@ -1,5 +1,5 @@
 'use client';
-import React, {useEffect} from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/app/lib/i18n';
 import SectionCard from '@/app/ui/SectionCard';
@@ -14,9 +14,9 @@ export default function AccountsView({ accounts, refresh }: { accounts: Account[
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {platforms.map(p => {
                     const acc = accounts.find(a => a.platform === (p.key as PlatformKey));
-                    const connected = acc?.connected ?? false;
+                    const connected = acc?.connected ?? false; 
+                    const accountExists = acc?.exists ?? false;
 
-                    const accountExists = !!acc;
                     return (
                         <div key={p.key} className="rounded-2xl border p-4 bg-white">
                             <div className="flex items-center gap-2">

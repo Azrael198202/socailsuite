@@ -53,7 +53,7 @@ public class AccountsResource {
         List<AccountDto> out = new ArrayList<>();
         for (Platform p : Platform.values()) {
             Account a = all.stream().filter(x -> x.platform == p && x.connected).findFirst().orElse(null);
-            out.add(new AccountDto(p, a != null ? a.name : p.name(), a != null && a.connected, null));
+            out.add(new AccountDto(p, a != null ? a.name : p.name(), a != null && a.connected, null, a != null));
         }
         return out;
     }
@@ -173,6 +173,16 @@ public class AccountsResource {
         // repo.delete("platform", p);
 
         return Map.of("status", "ok");
+    }
+
+    @POST
+    @Path("/{platform}/exists")
+    public Boolean  existsPlatform(@PathParam("platform") String platform) {
+        Platform p = PlatformUtils.toPlatform(platform);
+
+        long count = repo.count("platform = ?1", p);
+
+        return count > 0;
     }
 
     /**

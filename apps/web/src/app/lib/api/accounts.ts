@@ -110,6 +110,10 @@ export const AccountsAPI = {
         api<{ status: "ok" }>(`/api/accounts/${platform}/start`, { method: "POST" })
     },
 
+    existsPlatform: async (platform: PlatformKey) => {
+        return api<boolean>(`/api/accounts/${platform}/exists`, { method: "POST" })
+    },
+
     revokePlatform: (platform: PlatformKey) =>
         api<{ status: "ok" }>(`/api/accounts/${platform}/revoke`, { method: "POST" }),
 

@@ -11,15 +11,31 @@ public class ScheduledPost extends PanacheEntityBase {
     @Id
     @Column(columnDefinition = "uuid")
     public UUID id;
+
     public String title;
+
     @Enumerated(EnumType.STRING)
     public Platform platform;
-    public LocalDate date;
+
+    public OffsetDateTime date; // Scheduled date
+
     @Column(columnDefinition = "text")
     public String description;
+
     @Column(columnDefinition = "text")
     public String tags;
-    public String status; // PENDING / PUBLISHED / FAILED
+
+    public String status;
+
+    @Column(columnDefinition = "uuid")
+    public UUID mediaId;
+    @Column(columnDefinition = "uuid")
+    public UUID accountId;
+
+    @Column(columnDefinition = "text")
+    public String lastError;
+
     public OffsetDateTime created_at;
     public OffsetDateTime updated_at;
+
 }

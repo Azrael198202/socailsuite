@@ -5,6 +5,7 @@ export type Account = {
   name: string;
   connected: boolean;
   avatarUrl?: string;
+  exists?: boolean;
 };
 
 export type ScheduledItem = {
