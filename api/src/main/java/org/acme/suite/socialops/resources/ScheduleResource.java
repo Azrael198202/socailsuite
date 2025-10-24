@@ -73,6 +73,6 @@ public class ScheduleResource {
 
     @GET
     public List<ScheduledPost> list() {
-        return repo.listAll(Sort.by("createdAt").descending());
+        return repo.listAll(Sort.by("created_at").descending());
     }
 }

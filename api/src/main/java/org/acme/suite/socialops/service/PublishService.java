@@ -4,6 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.acme.suite.socialops.domain.*;
 import org.acme.suite.socialops.repo.*;
 import jakarta.inject.Inject;
+
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @ApplicationScoped
@@ -12,7 +14,8 @@ public class PublishService {
     ScheduledPostRepo posts;
 
     public List<ScheduledPost> dueToday() {
-        return posts.list("date = ?1 and status = 'PENDING'", java.time.LocalDate.now());
+        OffsetDateTime now = OffsetDateTime.now();
+        return posts.list("date = ?1 and status = 'PENDING'", now);
     }
 
     public void markPublished(ScheduledPost p) {

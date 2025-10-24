@@ -13,11 +13,10 @@ public class PublishJob {
     @Inject
     PublishService service;
 
-    @Scheduled(every = "60s") // 每分钟检查一次
+    @Scheduled(every = "60s")
     void tick() {
         for (ScheduledPost p : service.dueToday()) {
             try {
-                // TODO: 调用具体平台 SDK/API 上传或发布
                 LOG.infof("Publishing %s to %s", p.title, p.platform);
                 service.markPublished(p);
             } catch (Exception e) {

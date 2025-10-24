@@ -15,5 +15,5 @@ public class MediaFile extends PanacheEntityBase {
     public String contentType; 
     public long size;
     public String storagePath;
-    public OffsetDateTime createdAt;
+    public OffsetDateTime created_at;
 }

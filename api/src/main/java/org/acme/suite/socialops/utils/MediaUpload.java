@@ -13,8 +13,12 @@ import org.acme.suite.socialops.repo.MediaFileRepo;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
+@ApplicationScoped
+@Transactional
 public class MediaUpload {
 
     @Inject
@@ -41,9 +45,9 @@ public class MediaUpload {
         mf.contentType = file.contentType();
         mf.size = Files.size(dst);
         mf.storagePath = dst.toString();
-        mf.createdAt = OffsetDateTime.now();
+        mf.created_at = OffsetDateTime.now();
         mediaFileRepo.persist(mf);
 
-        return Map.of("id", id.toString(), "filename", fname, "size", mf.size);
+        return Map.of("id", id.toString(), "filename", fname, "size", mf.size, "url", "/api/files/" + id.toString(), "path" , mf.storagePath);
     }
 }

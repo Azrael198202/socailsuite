@@ -6,6 +6,12 @@ import { platforms, cx } from '@/app/lib/platforms';
 import { ScheduleAPI } from '@/app/lib/api';
 import type { PlatformKey, ScheduledItem } from '@/app/lib/types';
 import PlatformChip from '@/app/ui/PlatformChip';
+import { uploadFile } from '@/app/lib/api/update';
+
+export const API_BASE =
+    (typeof window !== "undefined" && (window as any).__API_BASE__) ||
+    process.env.NEXT_PUBLIC_API_BASE ||
+    "http://localhost:8080";
 
 export default function UploadPanel({ onCreated }: { onCreated: (item: ScheduledItem) => void }) {
     const { t } = useI18n();
@@ -15,19 +21,38 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
     const [date, setDate] = useState<string>(new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16));
 
     const [platState, setPlatState] = useState<Record<PlatformKey, boolean>>({ youtube: true, tiktok: false, instagram: false, x: false, facebook: false, linkedin: false });
-    
+
     const canSchedule = title.trim().length > 0 && Object.values(platState).some(Boolean);
+
+    const [fileInfo, setFileInfo] = useState<{ id: string, name: string } | null>(null);
+
+    const onPick = async (f: File) => {
+        try {
+            const res = await uploadFile(f);
+            setFileInfo({ id: res.id, name: res.filename });
+        } catch (e: any) {
+            alert(e.message || "Upload failed");
+        }
+    };
 
     return (
         <div className="grid grid-cols-12 gap-5">
             <div className="col-span-12 xl:col-span-8 flex flex-col gap-5">
                 <SectionCard title={t('file')}>
-                    <div className="rounded-2xl border-2 border-dashed grid place-content-center h-48 bg-white/50">
+                    <label className="rounded-2xl border-2 border-dashed grid place-content-center h-48 bg-white/50 cursor-pointer">
+                        <input
+                            type="file"
+                            accept="video/*"
+                            className="hidden"
+                            onChange={(e) => e.target.files?.[0] && onPick(e.target.files[0])}
+                        />
                         <div className="text-center">
-                            <div className="text-sm text-gray-600">Drag & drop or click to select</div>
+                            <div className="text-sm text-gray-600">
+                                {fileInfo ? `選択済み: ${fileInfo.name}` : 'Drag & drop or click to select'}
+                            </div>
                             <div className="text-xs text-gray-400 mt-1">MP4 / MOV / WEBM (≤ 1GB)</div>
                         </div>
-                    </div>
+                    </label>
                 </SectionCard>
 
                 <SectionCard title={t('meta')}>
