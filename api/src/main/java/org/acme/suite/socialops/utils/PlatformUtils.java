@@ -40,7 +40,7 @@ public class PlatformUtils {
             case "tiktok" -> Platform.tiktok;
             case "x", "twitter" -> Platform.x;
             case "instagram", "ig" -> Platform.instagram;
-            default -> throw new NotFoundException("platform not found: " + s); // 也可用 404 更贴切
+            default -> throw new NotFoundException("platform not found: " + s); 
         };
     }
 }

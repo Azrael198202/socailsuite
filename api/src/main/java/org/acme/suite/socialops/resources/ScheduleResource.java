@@ -6,7 +6,10 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import org.acme.suite.socialops.domain.*;
+import org.acme.suite.socialops.dto.ScheduledPostDto;
 import org.acme.suite.socialops.repo.*;
 
 import io.quarkus.panache.common.Sort;
@@ -73,11 +76,74 @@ public class ScheduleResource {
             repo.persist(p);
         }
 
-        return repo.find("accountId=?1 and date=?2", acc.id, ZonedDateTime.of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault()).toOffsetDateTime()).firstResult();
+        return repo
+                .find("accountId=?1 and date=?2", acc.id, ZonedDateTime
+                        .of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault()).toOffsetDateTime())
+                .firstResult();
     }
 
     @GET
     public List<ScheduledPost> list() {
         return repo.listAll(Sort.by("created_at").descending());
+    }
+
+    @GET
+    @Path("/range")
+    public List<ScheduledPostDto> listRange(@QueryParam("from") String from,
+            @QueryParam("to") String to) {
+        if (from == null || to == null) {
+            throw new BadRequestException("from & to must be provided as YYYY-MM-DD");
+        }
+        LocalDate f = LocalDate.parse(from);
+        LocalDate t = LocalDate.parse(to);
+        ZoneId z = zone();
+
+        return repo.listRange(f, t, z).stream()
+                .map(s -> toDto(s, z))
+                .collect(Collectors.toList());
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Transactional
+    public ScheduledPostDto update(@PathParam("id") String id, CreateReq r) {
+        ScheduledPost s = repo.findByIdOptional(UUID.fromString(id))
+                .orElseThrow(NotFoundException::new);
+
+        if (r.title() != null)
+            s.title = r.title();
+        if (r.description() != null)
+            s.description = r.description();
+        if (r.tags() != null)
+            s.tags = r.tags();
+        if (r.platform() != null)
+            s.platform = r.platform();
+        if (r.date() != null) {
+            OffsetDateTime at = r.date().length() <= 10
+                    ? ZonedDateTime.of(LocalDate.parse(r.date()), LocalTime.of(9, 0), ZoneId.systemDefault())
+                            .toOffsetDateTime()
+                    : OffsetDateTime.parse(r.date() + ":00Z");
+            s.date = at;
+        }
+        if (r.mediaId() != null)
+            s.mediaId = UUID.fromString(r.mediaId());
+
+        repo.persist(s);
+        return toDto(s, zone());
+    }
+
+    private static ScheduledPostDto toDto(ScheduledPost s, ZoneId zone) {
+        return new ScheduledPostDto(
+                s.id.toString(),
+                s.title,
+                s.platform,
+                s.date,
+                s.description,
+                PublishStatus.valueOf(s.status),
+                s.tags);
+    }
+
+    private static ZoneId zone() {
+        return ZoneId.systemDefault();
     }
 }

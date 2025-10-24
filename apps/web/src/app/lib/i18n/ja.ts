@@ -48,6 +48,13 @@ const ja: Messages = {
   accountexits: "アカウント",
   exits: "あり",
   noexits: "なし",
+  viewDay: "日表示",
+  prev: "前の月",
+  next: "次の月",
+  today: "今日",
+  month: "月表示",
+  day: "日表示",
+  
 };
 
 export default ja;

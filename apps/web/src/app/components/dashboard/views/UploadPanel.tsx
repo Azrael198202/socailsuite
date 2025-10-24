@@ -8,6 +8,7 @@ import { ScheduleAPI } from '@/app/lib/api';
 import type { PlatformKey, ScheduledItem } from '@/app/lib/types';
 import PlatformChip from '@/app/ui/PlatformChip';
 import { uploadFile } from '@/app/lib/api/update';
+import { toLocalISOString } from '@/app/utils/date';
 
 export const API_BASE =
     (typeof window !== "undefined" && (window as any).__API_BASE__) ||
@@ -20,7 +21,7 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
     const [title, setTitle] = useState('');
     const [desc, setDesc] = useState('');
     const [tags, setTags] = useState('');
-    const [date, setDate] = useState<string>(new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16));
+    const [date, setDate] = useState<string>(toLocalISOString(new Date(Date.now() + 60 * 60 * 1000)).slice(0, 16));
 
     const revokeRef = useRef<string | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -103,7 +104,6 @@ export default function UploadPanel({ onCreated }: { onCreated: (item: Scheduled
                         </div>
                     )}
                 </SectionCard>
-
 
                 <SectionCard title={t('meta')}>
                     <div className="space-y-3">
